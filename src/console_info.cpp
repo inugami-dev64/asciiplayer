@@ -36,8 +36,8 @@ namespace ap {
     }
 #endif
 
-    void Console::output(const char* row) {
-        printf("%s\n", row);
+    void Console::output(const char* data) {
+        printf("%s", data);
     }
 
     void Console::clear_console() {

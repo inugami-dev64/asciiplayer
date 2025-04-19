@@ -26,9 +26,9 @@ namespace ap {
 
         /**
          * Outputs data to stdout
-         * @param row specifies the string to output
+         * @param data specifies the string to output
          */
-        static void output(const char* row);
+        static void output(const char* data);
 
         /**
          * Clears the console
