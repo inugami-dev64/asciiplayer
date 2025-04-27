@@ -5,7 +5,6 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 #include <fstream>
-#include <iostream>
 
 namespace ap {
 
@@ -19,13 +18,13 @@ namespace ap {
 
     class Logger {
     public:
-        Logger(std::ofstream& stream, LogLevel level) :
+        Logger(std::ostream& stream, LogLevel level) :
             m_stream(stream),
             m_level(level) {}
 
         void log(LogLevel level, const char* message);
     private:
-        std::ofstream& m_stream;
+        std::ostream& m_stream;
         LogLevel m_level;
 
         const char* level2string(LogLevel level) {
@@ -40,6 +39,8 @@ namespace ap {
                     return "ERROR";
                 case CRITICAL:
                     return "CRITICAL";
+                default:
+                    return "UNKNOWN";
             }
         }
     };
