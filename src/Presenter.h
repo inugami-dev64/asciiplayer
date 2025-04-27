@@ -35,6 +35,14 @@ namespace ap {
         double getFrameRate() const {
             return frameRate;
         }
+
+        void addFrame(AVFrame *frame) {
+            workQueue.push(frame);
+        }
+
+        void setDone(bool done) {
+            workQueue.setDone(done);
+        }
     protected:
         double frameRate;
         unsigned int sampleRate;
