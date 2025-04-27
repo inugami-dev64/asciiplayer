@@ -9,8 +9,12 @@ find_library(AVUTIL_LIBRARY avutil)
 find_library(SWSCALE_LIBRARY swscale)
 
 add_executable(asciiplayer main.cpp
-        src/console_info.cpp
-        src/console_info.h)
+        src/Console.cpp
+        src/Console.h
+        src/Player.cpp
+        src/Player.h
+        src/Logger.cpp
+        src/Logger.h)
 
 target_include_directories(asciiplayer
     PRIVATE /usr/include/ffmpeg)

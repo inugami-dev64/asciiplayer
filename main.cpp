@@ -2,7 +2,7 @@
 #include <iostream>
 #include <thread>
 
-#include "src/console_info.h"
+#include "src/Console.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
