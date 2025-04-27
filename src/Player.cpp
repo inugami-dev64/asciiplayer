@@ -52,6 +52,19 @@ namespace ap {
         avformat_free_context(pFormatContext);
     }
 
+    void Player::play() {
+        while (av_read_frame(pFormatContext, pPacket) >= 0) {
+            if (pPacket->stream_index == videoStreamIndex) {
+                // TODO: Decode video packet and send received frame(s) into VideoPresenter queue
+            } else if (pPacket->stream_index == audioStreamIndex) {
+                // TODO: Decode audio packet and send received frame(s) into AudioPresenter queue
+            }
+
+            av_packet_unref(pPacket);
+        }
+    }
+
+
     AVCodecContext* Player::_initializeCodecContext(const AVCodec* pCodec, const AVCodecParameters* pParams) {
         AVCodecContext* pCodecContext = avcodec_alloc_context3(pCodec);
         if (!pCodecContext)
