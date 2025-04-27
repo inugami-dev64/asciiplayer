@@ -20,7 +20,10 @@ add_executable(asciiplayer main.cpp
         src/Player.h
         src/Logger.cpp
         src/Logger.h
-        src/WorkQueue.h)
+        src/WorkQueue.h
+        src/Presenter.h
+        src/VideoPresenter.h
+        src/VideoPresenter.cpp)
 
 target_include_directories(asciiplayer
     PRIVATE /usr/include/ffmpeg)
