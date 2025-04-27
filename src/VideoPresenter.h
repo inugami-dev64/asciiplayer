@@ -15,7 +15,7 @@ namespace ap {
 
     class VideoPresenter final : public Presenter {
     public:
-        VideoPresenter(double frameRate = 24.0, int width = 0, int height = 0, AVPixelFormat pixelFormat = 0);
+        VideoPresenter(double frameRate = 24.0, int width = 0, int height = 0, AVPixelFormat pixelFormat = AV_PIX_FMT_RGB24);
         ~VideoPresenter() override;
 
         void present() override;
@@ -23,7 +23,7 @@ namespace ap {
         void updateSwsContext(int width, int height, AVPixelFormat pixelFormat);
 
     private:
-        static const char symbols[] = " .-:*+=%@#";
+        static const char symbols[];
         int strideY = 0;
         char* pFramebuffer = nullptr;
         SwsContext* pSwsContext = nullptr;

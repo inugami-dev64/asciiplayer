@@ -13,6 +13,8 @@ extern "C" {
 using namespace std;
 
 namespace ap {
+    const char VideoPresenter::symbols[] = " .-:*+=%@#";
+
     VideoPresenter::VideoPresenter(double frameRate, int width, int height, AVPixelFormat pixelFormat) :
         Presenter(frameRate)
     {
@@ -60,6 +62,8 @@ namespace ap {
                 }
             }
 
+            av_frame_unref(pFrame);
+            av_frame_free(&pFrame);
             Console::output(pFramebuffer);
             fflush(stdout);
 
@@ -75,11 +79,11 @@ namespace ap {
         Console::clear_console();
     }
 
-    void VideoPresenter::transform(AVFrame *pFrame) {
+    void VideoPresenter::transform(AVFrame *frame) {
         sws_scale(
             pSwsContext,
-            pFrame->data,
-            pFrame->linesize,
+            frame->data,
+            frame->linesize,
             0,
             strideY,
             pConvertedFrame->data,
