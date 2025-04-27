@@ -33,8 +33,8 @@ namespace ap {
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &win);
 
         return Rectangle<int>{win.ws_col, win.ws_row};
-    }
 #endif
+    }
 
     void Console::output(const char* data) {
         printf("%s", data);
