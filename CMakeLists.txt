@@ -14,7 +14,8 @@ add_executable(asciiplayer main.cpp
         src/Player.cpp
         src/Player.h
         src/Logger.cpp
-        src/Logger.h)
+        src/Logger.h
+        src/WorkQueue.h)
 
 target_include_directories(asciiplayer
     PRIVATE /usr/include/ffmpeg)
