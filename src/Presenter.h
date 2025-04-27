@@ -6,8 +6,10 @@
 #define PRESENTER_H
 
 #include <thread>
-#include <libavutil/frame.h>
 
+extern "C" {
+    #include <libavutil/frame.h>
+}
 #include "WorkQueue.h"
 
 namespace ap {

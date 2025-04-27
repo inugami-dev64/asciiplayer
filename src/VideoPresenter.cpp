@@ -4,7 +4,9 @@
 
 #include "VideoPresenter.h"
 
-#include <libavutil/imgutils.h>
+extern "C" {
+    #include <libavutil/imgutils.h>
+}
 
 #include "Console.h"
 

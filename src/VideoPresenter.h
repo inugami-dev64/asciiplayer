@@ -4,7 +4,11 @@
 
 #ifndef VIDEOPRESENTER_H
 #define VIDEOPRESENTER_H
-#include "Player.h"
+
+extern "C" {
+    #include <libswscale/swscale.h>
+}
+
 #include "Presenter.h"
 
 namespace ap {
