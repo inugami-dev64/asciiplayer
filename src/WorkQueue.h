@@ -31,7 +31,11 @@ namespace ap {
 
         ~WorkQueue() {
             QueueNode<T> *pNode = pHead;
-            while (pHead != nullptr) {}
+            while (pNode != nullptr) {
+                QueueNode<T>* tmp = pNode->next;
+                delete pNode;
+                pNode = tmp;
+            }
         }
 
         void push(const T& val) {
@@ -45,10 +49,11 @@ namespace ap {
                 pNode = pNode->next;
 
             // here we will allocate a new node and add it to the list
-            if (node_length + 1 >= BLOCK_SIZE) {
+            if (node_length >= BLOCK_SIZE) {
                 pNode->next = new QueueNode<T>();
                 pNode = pNode->next;
                 ++node_id;
+                node_length = 0;
             }
 
             pNode->data[node_length++] = val;
@@ -88,12 +93,22 @@ namespace ap {
         bool empty() const {
             return size() == 0;
         }
+
+        [[nodiscard]]
+        bool isDone() const {
+            return is_done.load();
+        }
+
+        void setDone(bool is_done) {
+            this->is_done.store(is_done);
+        }
     private:
         QueueNode<T> *pHead;
 
         // here comes the fun part, accounting on how many elements exist in the queue
         std::atomic<uint64_t> length = {};
         std::atomic<uint32_t> front = {};
+        std::atomic<bool> is_done = {};
 
         std::mutex push_mutex = {};
         std::mutex pop_mutex = {};
