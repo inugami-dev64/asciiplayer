@@ -134,4 +134,30 @@ namespace ap {
         pVideoCodecContext = _initializeCodecContext(pVideoCodec, pVideoCodecParams);
         pAudioCodecContext = _initializeCodecContext(pAudioCodec, pAudioCodecParams);
     }
+
+    int Player::decodePacket(AVCodecContext* pCodecContext, Presenter *pPresenter) {
+        int response = avcodec_send_packet(pVideoCodecContext, pPacket);
+        if (response < 0) {
+            logger.log(ERROR, ("Could not send packet to codec: "s + av_err2str(response)).c_str());
+            return response;
+        }
+
+        while (response >= 0) {
+            AVFrame *pFrame = av_frame_alloc();
+            if (!pFrame)
+                throw runtime_error("Could not allocate frame");
+            response = avcodec_receive_frame(pCodecContext, pFrame);
+            if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
+                break;
+            }
+
+            if (response < 0) {
+                logger.log(ERROR, ("Could not receive frame from the decoder: "s + av_err2str(response)).c_str());
+                return response;
+            }
+
+            pPresenter->addFrame(pFrame);
+        }
+        return 0;
+    }
 } // ap

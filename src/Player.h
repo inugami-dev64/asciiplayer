@@ -39,6 +39,7 @@ namespace ap {
 
         static AVCodecContext* _initializeCodecContext(const AVCodec* pCodec, const AVCodecParameters* pParams);
         void _findCodecContext();
+        int decodePacket(AVCodecContext *pCodecContext, Presenter *pPresenter);
     };
 
 } // ap
