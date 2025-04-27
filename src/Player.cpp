@@ -10,9 +10,10 @@
 using namespace std;
 
 namespace ap {
-    Player::Player(const char *filename, Logger logger) :
+    Player::Player(const char *filename, Logger logger, VideoPresenter* pVideoPresenter) :
         logger(logger)
     {
+        this->pVideoPresenter = pVideoPresenter;
         logger.log(DEBUG, "Initializing all the containers, codecs and protocols");
 
         pFormatContext = avformat_alloc_context();
@@ -44,26 +45,40 @@ namespace ap {
         pPacket = av_packet_alloc();
         if (!pPacket)
             throw runtime_error("Could not allocate memory for AVPacket");
+
+        this->pVideoPresenter->setFrameRate(
+            static_cast<double>(pFormatContext->streams[videoStreamIndex]->r_frame_rate.num) /
+            static_cast<double>(pFormatContext->streams[videoStreamIndex]->r_frame_rate.den));
+        this->pVideoPresenter->updateSwsContext(
+            pVideoCodecContext->width,
+            pVideoCodecContext->height,
+            pVideoCodecContext->pix_fmt);
     }
 
     Player::~Player() {
         avformat_close_input(&pFormatContext);
+        avcodec_free_context(&pVideoCodecContext);
+        if (pAudioCodecContext)
+            avcodec_free_context(&pAudioCodecContext);
         av_packet_free(&pPacket);
         avformat_free_context(pFormatContext);
     }
 
     void Player::play() {
+        std::thread videoThread(&VideoPresenter::present, pVideoPresenter);
         while (av_read_frame(pFormatContext, pPacket) >= 0) {
             if (pPacket->stream_index == videoStreamIndex) {
-                // TODO: Decode video packet and send received frame(s) into VideoPresenter queue
+                decodePacket(pVideoCodecContext, pVideoPresenter);
             } else if (pPacket->stream_index == audioStreamIndex) {
                 // TODO: Decode audio packet and send received frame(s) into AudioPresenter queue
             }
 
             av_packet_unref(pPacket);
         }
-    }
 
+        pVideoPresenter->setDone(true);
+        videoThread.join();
+    }
 
     AVCodecContext* Player::_initializeCodecContext(const AVCodec* pCodec, const AVCodecParameters* pParams) {
         AVCodecContext* pCodecContext = avcodec_alloc_context3(pCodec);

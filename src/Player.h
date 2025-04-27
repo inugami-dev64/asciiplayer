@@ -11,6 +11,7 @@ extern "C" {
 }
 
 #include "Logger.h"
+#include "VideoPresenter.h"
 
 namespace ap {
     /**
@@ -19,12 +20,13 @@ namespace ap {
      */
     class Player {
     public:
-        explicit Player(const char* filename, Logger logger);
+        explicit Player(const char* filename, Logger logger, VideoPresenter* pVideoPresenter);
         ~Player();
 
         void play();
 
     private:
+        VideoPresenter* pVideoPresenter;
         Logger logger;
         AVFormatContext* pFormatContext = nullptr;
         AVCodecContext* pVideoCodecContext = nullptr;
@@ -32,7 +34,7 @@ namespace ap {
         AVCodecContext* pAudioCodecContext = nullptr;
         unsigned int audioStreamIndex = -1;
 
-        // video rendering specific stuff
+        // decoding specific stuff
         AVPacket* pPacket = nullptr;
 
         static AVCodecContext* _initializeCodecContext(const AVCodec* pCodec, const AVCodecParameters* pParams);
