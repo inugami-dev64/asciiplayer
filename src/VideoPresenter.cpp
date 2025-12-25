@@ -9,6 +9,7 @@ extern "C" {
 }
 
 #include "Console.h"
+#include <iostream>
 
 using namespace std;
 
@@ -25,8 +26,6 @@ namespace ap {
     }
 
     VideoPresenter::~VideoPresenter() {
-        // free previously allocated resources
-        presenter.join();
         if (pFramebuffer)
             av_freep(&pFramebuffer);
         if (pConvertedFrame)
@@ -47,8 +46,8 @@ namespace ap {
 
             AVFrame* pFrame = workQueue.pop();
             this->transform(pFrame);
+            av_frame_free(&pFrame);
 
-            Console::clear_console();
             memset(pFramebuffer, 0, (pConvertedFrame->width + 1) * (pConvertedFrame->height + 1));
 
             for (int i = 0; i < pConvertedFrame->height; i++) {
@@ -62,11 +61,9 @@ namespace ap {
                 }
             }
 
-            av_frame_unref(pFrame);
-            av_frame_free(&pFrame);
+            Console::clear_console();
             Console::output(pFramebuffer);
             fflush(stdout);
-
 
             auto endTime = chrono::high_resolution_clock::now();
             double diff = std::chrono::duration<double, std::milli>(endTime - beginTime).count();
@@ -75,8 +72,6 @@ namespace ap {
                 this_thread::sleep_for(chrono::milliseconds(static_cast<long>(frame_time - diff)));
             beginTime = chrono::high_resolution_clock::now();
         }
-
-        Console::clear_console();
     }
 
     void VideoPresenter::transform(AVFrame *frame) {
