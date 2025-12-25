@@ -6,8 +6,14 @@
 #include <stdexcept>
 #include <sstream>
 #include <string>
+#include <cstdio>
 
 using namespace std;
+
+// Workaround to make av_err2str macro work
+#undef av_err2str
+#define av_err2str(errnum) \
+    av_make_error_string((char*)__builtin_alloca(AV_ERROR_MAX_STRING_SIZE), AV_ERROR_MAX_STRING_SIZE, errnum);
 
 namespace ap {
     Player::Player(const char *filename, Logger logger, VideoPresenter* pVideoPresenter) :
@@ -138,7 +144,8 @@ namespace ap {
     int Player::decodePacket(AVCodecContext* pCodecContext, Presenter *pPresenter) {
         int response = avcodec_send_packet(pVideoCodecContext, pPacket);
         if (response < 0) {
-            logger.log(ERROR, ("Could not send packet to codec: "s + av_err2str(response)).c_str());
+            string errmsg = av_err2str(response);
+            logger.log(ERROR, ("Could not send packet to codec: "s + errmsg).c_str());
             return response;
         }
 
@@ -152,7 +159,8 @@ namespace ap {
             }
 
             if (response < 0) {
-                logger.log(ERROR, ("Could not receive frame from the decoder: "s + av_err2str(response)).c_str());
+                const char* errmsg = av_err2str(response);
+                logger.log(ERROR, ("Failed to receive a frame: "s + errmsg).c_str());
                 return response;
             }
 
