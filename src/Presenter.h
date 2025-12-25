@@ -46,7 +46,6 @@ namespace ap {
     protected:
         double frameRate;
         unsigned int sampleRate;
-        std::thread presenter;
         WorkQueue<AVFrame*> workQueue;
 
         /**
