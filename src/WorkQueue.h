@@ -78,7 +78,7 @@ namespace ap {
             }
 
             if (empty())
-                throw std::out_of_range("WorkQueue::pop");
+                return T{};
 
             front.store(front_val + 1);
             return std::move(pHead->data[front_val]);
