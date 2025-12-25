@@ -26,24 +26,24 @@ namespace ap {
         if (!pFormatContext)
             throw runtime_error("Could not allocate memory for format context");
 
-        logger.log(DEBUG, std::string("Attempting to open an input file %s" + std::string(filename)).c_str());
+        logger.log(DEBUG, string("Attempting to open an input file %s" + string(filename)).c_str());
 
         // Open the file and read its header
         if (avformat_open_input(&pFormatContext, filename, nullptr, nullptr) != 0)
-            throw std::runtime_error("Could not open input file " + std::string(filename) + ".");
+            throw runtime_error("Could not open input file " + string(filename) + ".");
 
         stringstream ss;
         // now we have access to some information about the file
         ss << "format " << pFormatContext->iformat->name <<
             ", duration " << pFormatContext->duration <<
-            ", bit_rate " << pFormatContext->bit_rate << std::endl;
+            ", bit_rate " << pFormatContext->bit_rate << endl;
         logger.log(DEBUG, ss.str().c_str());
 
         logger.log(DEBUG, "Finding stream info from format");
 
         // read packets stream information
         if (avformat_find_stream_info(pFormatContext, nullptr) < 0)
-            throw std::runtime_error("Could not find stream information");
+            throw runtime_error("Could not find stream information");
 
         // Create codec contexts for video and audio streams
         _findCodecContext();
@@ -51,6 +51,9 @@ namespace ap {
         pPacket = av_packet_alloc();
         if (!pPacket)
             throw runtime_error("Could not allocate memory for AVPacket");
+
+        this->frameTime = 1000. * static_cast<double>(pFormatContext->streams[videoStreamIndex]->r_frame_rate.den) /
+                          static_cast<double>(pFormatContext->streams[videoStreamIndex]->r_frame_rate.num);
 
         this->pVideoPresenter->setFrameRate(
             static_cast<double>(pFormatContext->streams[videoStreamIndex]->r_frame_rate.num) /
@@ -68,18 +71,28 @@ namespace ap {
             avcodec_free_context(&pAudioCodecContext);
         av_packet_free(&pPacket);
         avformat_free_context(pFormatContext);
+
+        // delete dependencies
+        delete pVideoPresenter;
     }
 
     void Player::play() {
-        std::thread videoThread(&VideoPresenter::present, pVideoPresenter);
-        while (av_read_frame(pFormatContext, pPacket) >= 0) {
+        thread videoThread(&VideoPresenter::present, pVideoPresenter);
+        int status = 0;
+        while (status >= 0) {
+            auto beginTime = chrono::high_resolution_clock::now();
+            status = av_read_frame(pFormatContext, pPacket);
             if (pPacket->stream_index == videoStreamIndex) {
                 decodePacket(pVideoCodecContext, pVideoPresenter);
             } else if (pPacket->stream_index == audioStreamIndex) {
                 // TODO: Decode audio packet and send received frame(s) into AudioPresenter queue
             }
-
             av_packet_unref(pPacket);
+
+            auto endTime = chrono::high_resolution_clock::now();
+            double diff = chrono::duration<double, std::milli>(endTime - beginTime).count();
+            if (diff < this->frameTime / 3)
+                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(this->frameTime / 2 - diff)));
         }
 
         pVideoPresenter->setDone(true);
@@ -155,16 +168,19 @@ namespace ap {
                 throw runtime_error("Could not allocate frame");
             response = avcodec_receive_frame(pCodecContext, pFrame);
             if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
+                av_frame_free(&pFrame);
                 break;
             }
 
             if (response < 0) {
                 const char* errmsg = av_err2str(response);
                 logger.log(ERROR, ("Failed to receive a frame: "s + errmsg).c_str());
+                av_frame_free(&pFrame);
                 return response;
             }
 
             pPresenter->addFrame(pFrame);
+            //av_frame_free(&pFrame);
         }
         return 0;
     }

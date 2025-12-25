@@ -34,6 +34,10 @@ namespace ap {
         AVCodecContext* pAudioCodecContext = nullptr;
         unsigned int audioStreamIndex = -1;
 
+        // Frametime will be used to prevent decoding thread from decoding too many
+        // frames at once and thus avoid excessive memory consumption
+        double frameTime = 0.0;
+
         // decoding specific stuff
         AVPacket* pPacket = nullptr;
 
