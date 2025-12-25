@@ -92,7 +92,7 @@ namespace ap {
             auto endTime = chrono::high_resolution_clock::now();
             double diff = chrono::duration<double, std::milli>(endTime - beginTime).count();
             if (diff < this->frameTime / 3)
-                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(this->frameTime / 2 - diff)));
+                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(this->frameTime / 3 - diff)));
         }
 
         pVideoPresenter->setDone(true);
