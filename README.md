@@ -12,7 +12,7 @@ $ sudo dnf install ffmpeg-libs
 
 Debian:
 ```bash
-$ sudo apt install -y libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev
+$ sudo apt install -y libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev portaudio19-dev libswscale-dev libswresample-dev
 ```
 
 Step 2: Build the project:  
