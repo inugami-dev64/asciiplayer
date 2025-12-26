@@ -12,6 +12,8 @@ find_library(AVCODEC_LIBRARY avcodec)
 find_library(AVFORMAT_LIBRARY avformat)
 find_library(AVUTIL_LIBRARY avutil)
 find_library(SWSCALE_LIBRARY swscale)
+find_library(PA_LIBRARY portaudio)
+find_library(SWRESAMPLE_LIRBARY swresample)
 
 add_executable(asciiplayer main.cpp
         src/Console.cpp
@@ -22,17 +24,23 @@ add_executable(asciiplayer main.cpp
         src/Logger.h
         src/WorkQueue.h
         src/Presenter.h
+        src/AudioPresenter.h
+        src/AudioPresenter.cpp
         src/VideoPresenter.h
         src/VideoPresenter.cpp)
+
+set_target_properties(asciiplayer PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
 target_include_directories(asciiplayer
     PRIVATE /usr/include/ffmpeg)
 
 target_link_libraries(asciiplayer
+    PRIVATE ${AVUTIL_LIBRARY}
+    PRIVATE ${SWSCALE_LIBRARY}
+    PRIVATE ${SWRESAMPLE_LIRBARY}
     PRIVATE ${AVCODEC_LIBRARY}
     PRIVATE ${AVFORMAT_LIBRARY}
-    PRIVATE ${AVUTIL_LIBRARY}
-    PRIVATE ${SWSCALE_LIBRARY})
+    PRIVATE ${PA_LIBRARY})
 
 # Setup GoogleTest for testing purposes
 include(FetchContent)
