@@ -12,6 +12,7 @@ extern "C" {
 
 #include "Logger.h"
 #include "VideoPresenter.h"
+#include "AudioPresenter.h"
 
 namespace ap {
     /**
@@ -20,13 +21,14 @@ namespace ap {
      */
     class Player {
     public:
-        explicit Player(const char* filename, Logger logger, VideoPresenter* pVideoPresenter);
+        explicit Player(const char* filename, Logger logger, VideoPresenter* pVideoPresenter, AudioPresenter *pAudioPresenter);
         ~Player();
 
         void play();
 
     private:
         VideoPresenter* pVideoPresenter;
+        AudioPresenter* pAudioPresenter;
         Logger logger;
         AVFormatContext* pFormatContext = nullptr;
         AVCodecContext* pVideoCodecContext = nullptr;
@@ -43,7 +45,7 @@ namespace ap {
 
         static AVCodecContext* _initializeCodecContext(const AVCodec* pCodec, const AVCodecParameters* pParams);
         void _findCodecContext();
-        int decodePacket(AVCodecContext *pCodecContext, Presenter *pPresenter);
+        int _decodePacket(AVCodecContext *pCodecContext, Presenter *pPresenter);
     };
 
 } // ap

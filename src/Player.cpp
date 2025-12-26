@@ -16,10 +16,11 @@ using namespace std;
     av_make_error_string((char*)__builtin_alloca(AV_ERROR_MAX_STRING_SIZE), AV_ERROR_MAX_STRING_SIZE, errnum);
 
 namespace ap {
-    Player::Player(const char *filename, Logger logger, VideoPresenter* pVideoPresenter) :
+    Player::Player(const char *filename, Logger logger, VideoPresenter* pVideoPresenter, AudioPresenter* pAudioPresenter) :
         logger(logger)
     {
         this->pVideoPresenter = pVideoPresenter;
+        this->pAudioPresenter = pAudioPresenter;
         logger.log(DEBUG, "Initializing all the containers, codecs and protocols");
 
         pFormatContext = avformat_alloc_context();
@@ -62,6 +63,11 @@ namespace ap {
             pVideoCodecContext->width,
             pVideoCodecContext->height,
             pVideoCodecContext->pix_fmt);
+
+        this->pAudioPresenter->setSampleRate(pAudioCodecContext->sample_rate);
+        this->pAudioPresenter->setOutputChannels(pAudioCodecContext->channels);
+        this->pAudioPresenter->setSampleFormat(pAudioCodecContext->sample_fmt);
+        this->pAudioPresenter->setChannelLayout(pAudioCodecContext->ch_layout);
     }
 
     Player::~Player() {
@@ -78,25 +84,28 @@ namespace ap {
 
     void Player::play() {
         thread videoThread(&VideoPresenter::present, pVideoPresenter);
+        thread audioThread(&AudioPresenter::present, pAudioPresenter);
         int status = 0;
         while (status >= 0) {
-            auto beginTime = chrono::high_resolution_clock::now();
+            //auto beginTime = chrono::high_resolution_clock::now();
             status = av_read_frame(pFormatContext, pPacket);
             if (pPacket->stream_index == videoStreamIndex) {
-                decodePacket(pVideoCodecContext, pVideoPresenter);
+                _decodePacket(pVideoCodecContext, pVideoPresenter);
             } else if (pPacket->stream_index == audioStreamIndex) {
-                // TODO: Decode audio packet and send received frame(s) into AudioPresenter queue
+                _decodePacket(pAudioCodecContext, pAudioPresenter);
             }
             av_packet_unref(pPacket);
 
-            auto endTime = chrono::high_resolution_clock::now();
+            /*auto endTime = chrono::high_resolution_clock::now();
             double diff = chrono::duration<double, std::milli>(endTime - beginTime).count();
             if (diff < this->frameTime / 3)
-                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(this->frameTime / 3 - diff)));
+                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(this->frameTime / 3 - diff)));*/
         }
 
         pVideoPresenter->setDone(true);
+        pAudioPresenter->setDone(true);
         videoThread.join();
+        audioThread.join();
     }
 
     AVCodecContext* Player::_initializeCodecContext(const AVCodec* pCodec, const AVCodecParameters* pParams) {
@@ -154,8 +163,8 @@ namespace ap {
         pAudioCodecContext = _initializeCodecContext(pAudioCodec, pAudioCodecParams);
     }
 
-    int Player::decodePacket(AVCodecContext* pCodecContext, Presenter *pPresenter) {
-        int response = avcodec_send_packet(pVideoCodecContext, pPacket);
+    int Player::_decodePacket(AVCodecContext* pCodecContext, Presenter *pPresenter) {
+        int response = avcodec_send_packet(pCodecContext, pPacket);
         if (response < 0) {
             string errmsg = av_err2str(response);
             logger.log(ERROR, ("Could not send packet to codec: "s + errmsg).c_str());
@@ -180,7 +189,6 @@ namespace ap {
             }
 
             pPresenter->addFrame(pFrame);
-            //av_frame_free(&pFrame);
         }
         return 0;
     }
