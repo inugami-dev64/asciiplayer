@@ -14,7 +14,8 @@ int main(int argc, char *argv[]) {
         ap::Player player(
             argv[1],
             ap::Logger(std::cout, ap::DEBUG),
-            new ap::VideoPresenter());
+            new ap::VideoPresenter(),
+            new ap::AudioPresenter());
 
         player.play();
     } catch (const std::exception &e) {
