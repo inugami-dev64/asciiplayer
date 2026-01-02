@@ -65,7 +65,7 @@ namespace ap {
             pVideoCodecContext->pix_fmt);
 
         this->pAudioPresenter->setSampleRate(pAudioCodecContext->sample_rate);
-        this->pAudioPresenter->setOutputChannels(pAudioCodecContext->channels);
+        this->pAudioPresenter->setOutputChannels(pAudioCodecContext->ch_layout.nb_channels);
         this->pAudioPresenter->setSampleFormat(pAudioCodecContext->sample_fmt);
         this->pAudioPresenter->setChannelLayout(pAudioCodecContext->ch_layout);
     }
@@ -133,10 +133,10 @@ namespace ap {
 
         for (unsigned int i = 0; i < pFormatContext->nb_streams; i++) {
             AVCodecParameters *pLocalCodecParams = pFormatContext->streams[i]->codecpar;
-            logger.log(DEBUG , ("AVStream->time_base before open coded "s + to_string(pFormatContext->streams[i]->time_base.num) + "/" + to_string(pFormatContext->streams[i]->time_base.den)).c_str());
-            logger.log(DEBUG, ("AVStream->r_frame_rate before open coded "s + to_string(pFormatContext->streams[i]->r_frame_rate.num) + "/" + to_string(pFormatContext->streams[i]->r_frame_rate.den)).c_str());
-            logger.log(DEBUG, ("AVStream->start_time "s + to_string(pFormatContext->streams[i]->start_time)).c_str());
-            logger.log(DEBUG, ("AVStream->duration "s + to_string(pFormatContext->streams[i]->duration)).c_str());
+            logger.log(DEBUG , ("AVStream->time_base before open coded " + to_string(pFormatContext->streams[i]->time_base.num) + "/" + to_string(pFormatContext->streams[i]->time_base.den)).c_str());
+            logger.log(DEBUG, ("AVStream->r_frame_rate before open coded " + to_string(pFormatContext->streams[i]->r_frame_rate.num) + "/" + to_string(pFormatContext->streams[i]->r_frame_rate.den)).c_str());
+            logger.log(DEBUG, ("AVStream->start_time " + to_string(pFormatContext->streams[i]->start_time)).c_str());
+            logger.log(DEBUG, ("AVStream->duration " + to_string(pFormatContext->streams[i]->duration)).c_str());
 
             logger.log(DEBUG, "finding the proper decoder (CODEC)");
 
@@ -167,7 +167,7 @@ namespace ap {
         int response = avcodec_send_packet(pCodecContext, pPacket);
         if (response < 0) {
             string errmsg = av_err2str(response);
-            logger.log(ERROR, ("Could not send packet to codec: "s + errmsg).c_str());
+            logger.log(ERROR, ("Could not send packet to codec: " + errmsg).c_str());
             return response;
         }
 
@@ -183,7 +183,7 @@ namespace ap {
 
             if (response < 0) {
                 const char* errmsg = av_err2str(response);
-                logger.log(ERROR, ("Failed to receive a frame: "s + errmsg).c_str());
+                logger.log(ERROR, ("Failed to receive a frame: " + string(errmsg)).c_str());
                 av_frame_free(&pFrame);
                 return response;
             }
