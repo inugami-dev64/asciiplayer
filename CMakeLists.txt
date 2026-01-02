@@ -1,46 +1,43 @@
 cmake_minimum_required(VERSION 3.20)
 project(asciiplayer)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 
 # Custom variables
 set(ENABLE_TESTS OFF CACHE BOOL "Build and run tests if enabled")
 
+add_executable(asciiplayer
+    main.cpp
+    src/Console.cpp
+    src/Console.h
+    src/Player.cpp
+    src/Player.h
+    src/Logger.cpp
+    src/Logger.h
+    src/WorkQueue.h
+    src/Presenter.h
+    src/AudioPresenter.h
+    src/AudioPresenter.cpp
+    src/VideoPresenter.h
+    src/VideoPresenter.cpp)
+
 # Works on Linux:tm: as long as you have those libraries installed
 # I haven't really given much thought into how to deal with dependencies on Windows
-find_library(AVCODEC_LIBRARY avcodec)
-find_library(AVFORMAT_LIBRARY avformat)
-find_library(AVUTIL_LIBRARY avutil)
-find_library(SWSCALE_LIBRARY swscale)
-find_library(PA_LIBRARY portaudio)
-find_library(SWRESAMPLE_LIRBARY swresample)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
+    libswresample
+    libavutil
+    libavdevice
+    libavformat
+    libavcodec
+    libswscale
+)
 
-add_executable(asciiplayer main.cpp
-        src/Console.cpp
-        src/Console.h
-        src/Player.cpp
-        src/Player.h
-        src/Logger.cpp
-        src/Logger.h
-        src/WorkQueue.h
-        src/Presenter.h
-        src/AudioPresenter.h
-        src/AudioPresenter.cpp
-        src/VideoPresenter.h
-        src/VideoPresenter.cpp)
-
-set_target_properties(asciiplayer PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
-
-target_include_directories(asciiplayer
-    PRIVATE /usr/include/ffmpeg)
+find_library(LIBPA portaudio)
 
 target_link_libraries(asciiplayer
-    PRIVATE ${AVUTIL_LIBRARY}
-    PRIVATE ${SWSCALE_LIBRARY}
-    PRIVATE ${SWRESAMPLE_LIRBARY}
-    PRIVATE ${AVCODEC_LIBRARY}
-    PRIVATE ${AVFORMAT_LIBRARY}
-    PRIVATE ${PA_LIBRARY})
+    PRIVATE PkgConfig::LIBAV
+    PRIVATE ${LIBPA})
 
 # Setup GoogleTest for testing purposes
 include(FetchContent)
