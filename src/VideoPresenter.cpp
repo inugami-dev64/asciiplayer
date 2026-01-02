@@ -66,10 +66,14 @@ namespace ap {
             fflush(stdout);
 
             auto endTime = chrono::high_resolution_clock::now();
-            double diff = std::chrono::duration<double, std::milli>(endTime - beginTime).count();
-            double frame_time = 1000 / frameRate;
-            if (diff < frame_time)
-                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(frame_time - diff)));
+            double diff = std::chrono::duration<double, std::micro>(endTime - beginTime).count();
+            double frame_time = 1e6 / this->frameRate + this->frameTimeOffset;
+            if (diff < frame_time) {
+                this_thread::sleep_for(chrono::microseconds(static_cast<long>(frame_time - diff)));
+                this->frameTimeOffset = 0;
+            } else {
+                this->frameTimeOffset += diff - frame_time;
+            }
             beginTime = chrono::high_resolution_clock::now();
         }
     }

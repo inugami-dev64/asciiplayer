@@ -26,6 +26,7 @@ namespace ap {
         static const char symbols[];
         int strideY = 0;
         char* pFramebuffer = nullptr;
+        double frameTimeOffset = 0;
         SwsContext* pSwsContext = nullptr;
 
         AVFrame* pConvertedFrame = nullptr;
