@@ -1,11 +1,15 @@
 #include "AudioPresenter.h"
 
-#include <libswresample/swresample.h>
-#include <libavutil/audio_fifo.h>
+extern "C" {
+    #include <libswresample/swresample.h>
+    #include <libavutil/audio_fifo.h>
+}
 
 using namespace std;
 
 #define FRAMES_PER_BUFFER 1024
+#define DST_SAMPLE_FORMAT AV_SAMPLE_FMT_S16
+#define PA_DST_SAMPLE_FORMAT paInt16
 
 namespace ap {
     AudioPresenter::AudioPresenter(int sampleRate) : Presenter(0, sampleRate) {
@@ -17,7 +21,7 @@ namespace ap {
     void AudioPresenter::_setupAudioParameters(PaStreamParameters* pParams) {
         pParams->device = Pa_GetDefaultOutputDevice();
         pParams->channelCount = this->outputChannels;
-        pParams->sampleFormat = AV_SAMPLE_FMT_S16;
+        pParams->sampleFormat = PA_DST_SAMPLE_FORMAT;
         pParams->suggestedLatency = Pa_GetDeviceInfo(pParams->device)->defaultHighOutputLatency;
     }
 
@@ -30,7 +34,7 @@ namespace ap {
         int ret = swr_alloc_set_opts2(
             &pSwrContext,
             &this->channelLayout,
-            AV_SAMPLE_FMT_S16,
+            DST_SAMPLE_FORMAT,
             this->sampleRate,
             &this->channelLayout,
             this->sampleFormat,
@@ -69,11 +73,11 @@ namespace ap {
 
         uint8_t **chunk = nullptr;
         int maxNbSamples = 0;
-        ret = av_samples_alloc_array_and_samples(&chunk, &dstLineSize, this->outputChannels, dstNbSamples, AV_SAMPLE_FMT_S16, 0);
+        ret = av_samples_alloc_array_and_samples(&chunk, &dstLineSize, this->outputChannels, dstNbSamples, DST_SAMPLE_FORMAT, 0);
         if (ret < 0)
             throw runtime_error("Failed to allocate output buffer");
 
-        AVAudioFifo* fifo = av_audio_fifo_alloc(AV_SAMPLE_FMT_S16, this->outputChannels, 2 * FRAMES_PER_BUFFER);
+        AVAudioFifo* fifo = av_audio_fifo_alloc(DST_SAMPLE_FORMAT, this->outputChannels, 2 * FRAMES_PER_BUFFER);
 
         uint8_t** buf = nullptr;
 
@@ -92,7 +96,7 @@ namespace ap {
                 if (buf) av_freep(&buf[0]);
                 av_freep(&buf);
 
-                ret = av_samples_alloc_array_and_samples(&buf, &dstLineSize, this->outputChannels, dstNbSamples, AV_SAMPLE_FMT_S16, 0);
+                ret = av_samples_alloc_array_and_samples(&buf, &dstLineSize, this->outputChannels, dstNbSamples, DST_SAMPLE_FORMAT, 0);
                 if (ret < 0)
                     throw runtime_error("Failed to allocate output buffer");
 
