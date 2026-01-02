@@ -126,5 +126,15 @@ namespace ap {
         err = Pa_CloseStream(stream);
         if (err != paNoError)
             throw runtime_error("Failed to close PortAudio stream");
+
+        av_audio_fifo_free(fifo);
+
+        if (buf) av_freep(&buf[0]);
+        av_freep(&buf);
+
+        if (chunk) av_freep(&chunk[0]);
+        av_freep(&chunk);
+
+        swr_free(&pSwrContext);
     }
 }
