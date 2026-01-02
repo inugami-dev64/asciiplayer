@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     try {
         ap::Player player(
             argv[1],
-            ap::Logger(std::cout, ap::DEBUG),
+            ap::Logger(std::cerr, ap::DEBUG),
             new ap::VideoPresenter(),
             new ap::AudioPresenter());
 
