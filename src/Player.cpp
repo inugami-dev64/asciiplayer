@@ -87,7 +87,7 @@ namespace ap {
         thread audioThread(&AudioPresenter::present, pAudioPresenter);
         int status = 0;
         while (status >= 0) {
-            //auto beginTime = chrono::high_resolution_clock::now();
+            auto beginTime = chrono::high_resolution_clock::now();
             status = av_read_frame(pFormatContext, pPacket);
             if (pPacket->stream_index == videoStreamIndex) {
                 _decodePacket(pVideoCodecContext, pVideoPresenter);
@@ -96,10 +96,10 @@ namespace ap {
             }
             av_packet_unref(pPacket);
 
-            /*auto endTime = chrono::high_resolution_clock::now();
+            auto endTime = chrono::high_resolution_clock::now();
             double diff = chrono::duration<double, std::milli>(endTime - beginTime).count();
             if (diff < this->frameTime / 3)
-                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(this->frameTime / 3 - diff)));*/
+                this_thread::sleep_for(chrono::milliseconds(static_cast<long>(this->frameTime / 3 - diff)));
         }
 
         pVideoPresenter->setDone(true);
