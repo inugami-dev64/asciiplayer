@@ -39,7 +39,7 @@ namespace ap {
         }
 
         void push(const T& val) {
-            std::lock_guard lock(push_mutex);
+            std::lock_guard<std::mutex> lock(push_mutex);
             uint64_t node_id = length.load() >> 32;
             uint64_t node_length = length.load() & 0xFFFFFFFF;
 
@@ -61,12 +61,12 @@ namespace ap {
         }
 
         T pop() {
-            std::lock_guard lock(pop_mutex);
+            std::lock_guard<std::mutex> lock(pop_mutex);
             uint32_t front_val = front.load();
 
             // the front counter is in the end of the first node
             if (front_val >= BLOCK_SIZE) {
-                std::lock_guard del_lock(push_mutex);
+                std::lock_guard<std::mutex> del_lock(push_mutex);
                 QueueNode<T> *pPrevious = pHead;
                 pHead = pHead->next;
                 delete pPrevious;
